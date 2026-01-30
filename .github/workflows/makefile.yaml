@@ -1,0 +1,54 @@
+name: Rust CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    env:
+      RUST_LOG: trace
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Validate environment file
+        run: make env-check
+
+      - name: Build project
+        run: make build
+
+      - name: Format code
+        run: make fmt
+
+      - name: Run clippy lint
+        run: make lint
+
+      - name: Run cargo check
+        run: make check
+
+      - name: Run tests
+        run: make test-verbose
+
+      - name: Generate docs
+        if: github.event_name == 'push'
+        run: make doc
