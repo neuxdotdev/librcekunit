@@ -1,29 +1,24 @@
 pub mod api;
 pub mod client;
 pub mod handler;
-
 pub use crate::api::auth::loging::LoginClient;
 pub use crate::api::auth::utils::cache::{CacheData, CacheManager};
+pub use crate::api::dashboard::{DashboardClient, InputDataClient, InputUserClient, PicClient};
 pub use api::auth::logout::LogoutClient;
-pub use api::manager::DashboardClient;
 pub use client::CekUnitClient;
 pub use handler::env::EnvConfig;
 pub use handler::error::ApiError;
-
 pub mod utils {
     pub use crate::api::auth::utils::cache::{CacheManager, Cookie};
     pub use crate::api::auth::utils::cookies;
     pub use crate::api::auth::utils::token;
 }
-
 pub fn version() -> &'static str {
     env!("CARGO_PKG_VERSION")
 }
-
 pub fn name() -> &'static str {
     env!("CARGO_PKG_NAME")
 }
-
 pub fn build_info() -> BuildInfo {
     BuildInfo {
         version: version(),
@@ -33,7 +28,6 @@ pub fn build_info() -> BuildInfo {
         repository: env!("CARGO_PKG_REPOSITORY"),
     }
 }
-
 #[derive(Debug, Clone)]
 pub struct BuildInfo {
     pub version: &'static str,
@@ -42,7 +36,6 @@ pub struct BuildInfo {
     pub description: &'static str,
     pub repository: &'static str,
 }
-
 impl std::fmt::Display for BuildInfo {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
@@ -52,7 +45,3 @@ impl std::fmt::Display for BuildInfo {
         )
     }
 }
-
-pub use api::manager::dashboard::structs::{
-    DashboardData, DashboardError, NasabahData, PaginationInfo, SearchParams, UserInfo,
-};

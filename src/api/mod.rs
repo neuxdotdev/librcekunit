@@ -1,5 +1,5 @@
 pub mod auth;
-pub mod manager;
+pub mod dashboard;
 
 pub use auth::*;
-pub use manager::*;
+pub use dashboard::*;

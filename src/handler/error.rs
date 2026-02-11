@@ -2,8 +2,6 @@ use crate::handler::env::EnvError;
 use reqwest;
 use serde_json;
 use thiserror::Error;
-
-/// Unified API error enum
 #[derive(Debug, Error)]
 pub enum ApiError {
     #[error("HTTP request failed: {0}")]
@@ -26,6 +24,12 @@ pub enum ApiError {
 
     #[error("JSON error: {0}")]
     JsonError(#[from] serde_json::Error),
+
+    #[error("IO error: {0}")]
+    IoError(#[from] std::io::Error),
+
+    #[error("Not authenticated")]
+    NotAuthenticated,
 }
 
 impl From<reqwest::Error> for ApiError {
