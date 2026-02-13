@@ -4,7 +4,7 @@ version = "1.2.0"
 edition = "2024"
 authors = ["neuxdotdev <neuxdev1@gmail.com>"]
 description = "a pure library implementation into rust programming language for admin panel cekunit"
-license-file = "LICENSE"
+
 license = "AGPL-3.0"
 readme = "README.md"
 
@@ -14,7 +14,7 @@ documentation = "https://docs.rs/librcekunit"
 
 keywords = [
     "cekunit",
-    "admin panel",
+    "admin-panel",
     "library",
     "rust",
     "rcekunit"]
