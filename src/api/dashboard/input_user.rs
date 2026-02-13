@@ -51,7 +51,7 @@ impl InputUserClient {
             .brotli(true)
             .deflate(true)
             .build()
-            .map_err(|e| ApiError::RequestFailed(Box::new(e)))
+            .map_err(|e| ApiError::from(e))
     }
     fn ensure_authenticated(&self) -> Result<CacheData, ApiError> {
         match self.cache_manager.load()? {
@@ -119,18 +119,17 @@ impl InputUserClient {
             .get(&url)
             .headers(headers)
             .send()
-            .map_err(|e| ApiError::RequestFailed(Box::new(e)))?;
+            .map_err(|e| ApiError::from(e))?;
         let status = response.status();
         if status.is_success() {
-            let body = response
-                .text()
-                .map_err(|e| ApiError::RequestFailed(Box::new(e)))?;
+            let body = response.text().map_err(|e| ApiError::from(e))?;
             Ok(body)
         } else {
             let error_body = response.text().unwrap_or_default();
-            Err(ApiError::RequestFailed(
-                format!("HTTP {} - {}", status, error_body).into(),
-            ))
+            Err(ApiError::RequestFailed(format!(
+                "HTTP {} - {}",
+                status, error_body
+            )))
         }
     }
     pub fn export_input_user(
@@ -166,18 +165,19 @@ impl InputUserClient {
             .get(&url)
             .headers(headers)
             .send()
-            .map_err(|e| ApiError::RequestFailed(Box::new(e)))?;
+            .map_err(|e| ApiError::from(e))?;
         let status = response.status();
         if !status.is_success() {
             let error_body = response.text().unwrap_or_default();
-            return Err(ApiError::RequestFailed(
-                format!("HTTP {} - {}", status, error_body).into(),
-            ));
+            return Err(ApiError::RequestFailed(format!(
+                "HTTP {} - {}",
+                status, error_body
+            )));
         }
         let mut buf = Vec::new();
         response
             .read_to_end(&mut buf)
-            .map_err(|e| ApiError::RequestFailed(Box::new(e)))?;
+            .map_err(|e| ApiError::from(e))?;
         Ok(buf)
     }
     pub fn get_csrf_token(&self) -> Result<String, ApiError> {

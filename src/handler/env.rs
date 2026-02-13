@@ -1,6 +1,7 @@
 use std::env;
 use thiserror::Error;
-#[derive(Debug, Error)]
+
+#[derive(Debug, Error, Clone)] // ✅ Clone ditambahkan
 pub enum EnvError {
     #[error(" Environment variable '{0}' tidak ditemukan")]
     NotFound(String),
@@ -13,6 +14,7 @@ pub enum EnvError {
     #[error(" Endpoint '{0}' tidak boleh mengandung karakter ilegal: {1}")]
     InvalidEndpoint(String, String),
 }
+
 #[derive(Debug, Clone)]
 pub struct EnvConfig {
     pub user_email: String,
@@ -32,7 +34,10 @@ pub struct EnvConfig {
     pub pic_endpoint: String,
     pub input_pic_endpoint: String,
     pub pic_item_endpoint: String,
+    pub users_endpoint: String,
+    pub users_item_endpoint: String,
 }
+
 impl EnvConfig {
     pub fn load() -> Result<Self, EnvError> {
         dotenv::dotenv().ok();
@@ -54,10 +59,13 @@ impl EnvConfig {
             pic_endpoint: get_env_endpoint("PIC_ENDPOINT")?,
             input_pic_endpoint: get_env_endpoint("INPUT_PIC_ENDPOINT")?,
             pic_item_endpoint: get_env_endpoint("PIC_ITEM_ENDPOINT")?,
+            users_endpoint: get_env_endpoint("USERS_ENDPOINT")?,
+            users_item_endpoint: get_env_endpoint("USERS_ITEM_ENDPOINT")?,
         };
         config.validate()?;
         Ok(config)
     }
+
     pub fn validate(&self) -> Result<(), EnvError> {
         if !self.user_email.contains('@') {
             return Err(EnvError::Invalid(
@@ -79,52 +87,76 @@ impl EnvConfig {
         }
         Ok(())
     }
+
     fn build_url(&self, endpoint: &str) -> String {
         format!("{}/{}", self.base_url, endpoint)
     }
+
     pub fn full_login_url(&self) -> String {
         self.build_url(&self.login_endpoint)
     }
+
     pub fn full_logout_url(&self) -> String {
         self.build_url(&self.logout_endpoint)
     }
+
     pub fn full_dashboard_url(&self) -> String {
         self.build_url(&self.dashboard_endpoint)
     }
+
     pub fn full_cekunit_export_url(&self) -> String {
         self.build_url(&self.cekunit_export_endpoint)
     }
+
     pub fn full_cekunit_unique_url(&self) -> String {
         self.build_url(&self.cekunit_unique_endpoint)
     }
+
     pub fn full_cekunit_delete_category_url(&self) -> String {
         self.build_url(&self.cekunit_delete_category_endpoint)
     }
+
     pub fn full_delete_all_url(&self) -> String {
         self.build_url(&self.delete_all_endpoint)
     }
+
     pub fn full_cekunit_item_url(&self, no: &str) -> String {
         format!("{}/{}", self.build_url(&self.cekunit_item_endpoint), no)
     }
+
     pub fn full_input_user_url(&self) -> String {
         self.build_url(&self.input_user_endpoint)
     }
+
     pub fn full_input_user_export_url(&self) -> String {
         self.build_url(&self.input_user_export_endpoint)
     }
+
     pub fn full_input_data_url(&self) -> String {
         self.build_url(&self.input_data_endpoint)
     }
+
     pub fn full_pic_url(&self) -> String {
         self.build_url(&self.pic_endpoint)
     }
+
     pub fn full_input_pic_url(&self) -> String {
         self.build_url(&self.input_pic_endpoint)
     }
+
     pub fn full_pic_item_url(&self, id: &str) -> String {
         format!("{}/{}", self.build_url(&self.pic_item_endpoint), id)
     }
+
+    pub fn full_users_url(&self) -> String {
+        self.build_url(&self.users_endpoint)
+    }
+
+    pub fn full_users_item_url(&self, id: &str) -> String {
+        format!("{}/{}", self.build_url(&self.users_item_endpoint), id)
+    }
 }
+
 fn get_env_non_empty(key: &str) -> Result<String, EnvError> {
     let val = env::var(key).map_err(|_| EnvError::NotFound(key.to_string()))?;
     let trimmed = val.trim();
@@ -133,6 +165,7 @@ fn get_env_non_empty(key: &str) -> Result<String, EnvError> {
     }
     Ok(trimmed.to_string())
 }
+
 fn get_env_url(key: &str) -> Result<String, EnvError> {
     let val = get_env_non_empty(key)?;
     if !val.starts_with("http://") && !val.starts_with("https://") {
@@ -143,10 +176,12 @@ fn get_env_url(key: &str) -> Result<String, EnvError> {
     }
     Ok(normalize_base(val))
 }
+
 fn get_env_endpoint(key: &str) -> Result<String, EnvError> {
     let val = get_env_non_empty(key)?;
     Ok(normalize_endpoint(val))
 }
+
 fn normalize_base(mut base: String) -> String {
     base = base.trim().to_string();
     if base.ends_with('/') {
@@ -154,21 +189,26 @@ fn normalize_base(mut base: String) -> String {
     }
     base
 }
+
 fn normalize_endpoint(mut endpoint: String) -> String {
     endpoint = endpoint.trim().to_string();
     endpoint = endpoint.trim_start_matches('/').to_string();
     endpoint
 }
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use std::env;
+
     fn safe_remove_var(key: &str) {
         unsafe { env::remove_var(key) }
     }
+
     fn safe_set_var(key: &str, value: &str) {
         unsafe { env::set_var(key, value) }
     }
+
     fn setup() {
         safe_remove_var("USER_EMAIL");
         safe_remove_var("USER_PASSWORD");
@@ -188,6 +228,7 @@ mod tests {
         safe_remove_var("INPUT_PIC_ENDPOINT");
         safe_remove_var("PIC_ITEM_ENDPOINT");
     }
+
     #[test]
     fn test_missing_var() {
         setup();
@@ -199,6 +240,7 @@ mod tests {
         let result = EnvConfig::load();
         assert!(matches!(result, Err(EnvError::NotFound(_))));
     }
+
     #[test]
     fn test_empty_var() {
         setup();
@@ -211,6 +253,7 @@ mod tests {
         let result = EnvConfig::load();
         assert!(matches!(result, Err(EnvError::Empty(_))));
     }
+
     #[test]
     fn test_invalid_url() {
         setup();
@@ -223,6 +266,7 @@ mod tests {
         let result = EnvConfig::load();
         assert!(matches!(result, Err(EnvError::InvalidUrl(_, _))));
     }
+
     #[test]
     fn test_password_too_short() {
         setup();

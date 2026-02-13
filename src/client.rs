@@ -1,6 +1,8 @@
 use crate::api::auth::utils::cache::{CacheData, CacheManager};
 use crate::api::auth::{LoginClient, LogoutClient};
-use crate::api::dashboard::{DashboardClient, InputDataClient, InputUserClient, PicClient};
+use crate::api::dashboard::{
+    DashboardClient, InputDataClient, InputUserClient, PicClient, UsersClient,
+};
 use crate::handler::env::EnvConfig;
 use crate::handler::error::ApiError;
 use std::path::PathBuf;
@@ -96,5 +98,13 @@ impl CekUnitClient {
     }
     pub fn logout_client(&self) -> &LogoutClient {
         &self.logout_client
+    }
+    pub fn users(&self) -> Result<UsersClient, ApiError> {
+        self.make()
+    }
+}
+impl FromContext for UsersClient {
+    fn from_ctx(ctx: Arc<ClientContext>) -> Result<Self, ApiError> {
+        UsersClient::with_config_and_cache(ctx.config.clone(), ctx.cache.clone())
     }
 }

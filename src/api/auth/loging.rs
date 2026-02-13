@@ -46,7 +46,7 @@ impl LoginClient {
             .build()
             .map_err(|e| {
                 log::error!("Failed to build HTTP client: {}", e);
-                ApiError::RequestFailed(Box::new(e))
+                ApiError::from(e)
             })
     }
     pub fn login(&mut self) -> Result<CacheData, ApiError> {
@@ -72,7 +72,7 @@ impl LoginClient {
         let headers_clone = response.headers().clone();
         let body = response.text().map_err(|e| {
             log::error!("Failed to read response body: {}", e);
-            ApiError::RequestFailed(Box::new(e))
+            ApiError::from(e)
         })?;
         self.validate_login_response(status, &body)?;
         let cookies = extract_cookies(&headers_clone);
@@ -96,7 +96,7 @@ impl LoginClient {
             .send()
             .map_err(|e| {
                 log::error!("Network error while fetching CSRF token: {}", e);
-                ApiError::RequestFailed(Box::new(e))
+                ApiError::from(e)
             })?;
         if !response.status().is_success() {
             let status = response.status();
@@ -118,7 +118,7 @@ impl LoginClient {
         }
         let html = response.text().map_err(|e| {
             log::error!("Failed to read response body: {}", e);
-            ApiError::RequestFailed(Box::new(e))
+            ApiError::from(e)
         })?;
         extract_csrf_token(&html).map_err(|e| {
             log::error!("CSRF token not found in login page HTML");
@@ -221,13 +221,14 @@ impl LoginClient {
                         response.status(),
                         attempt + 1
                     );
-                    last_error = Some(ApiError::RequestFailed(
-                        format!("HTTP {}", response.status()).into(),
-                    ));
+                    last_error = Some(ApiError::RequestFailed(format!(
+                        "HTTP {}",
+                        response.status()
+                    )));
                 }
                 Err(e) => {
                     log::warn!("️ Network error on attempt {}: {}", attempt + 1, e);
-                    last_error = Some(ApiError::RequestFailed(Box::new(e)));
+                    last_error = Some(ApiError::from(e));
                 }
             }
             if attempt < MAX_RETRIES - 1 {

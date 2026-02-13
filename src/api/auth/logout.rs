@@ -45,7 +45,7 @@ impl LogoutClient {
             .build()
             .map_err(|e| {
                 log::error!(" Failed to build HTTP client: {}", e);
-                ApiError::RequestFailed(Box::new(e))
+                ApiError::from(e)
             })
     }
     pub fn logout(&mut self) -> Result<(), ApiError> {
@@ -169,7 +169,7 @@ impl LogoutClient {
                 }
                 Err(e) => {
                     log::warn!("️ Logout network error on attempt {}: {}", attempt + 1, e);
-                    last_error = Some(ApiError::RequestFailed(Box::new(e)));
+                    last_error = Some(ApiError::from(e));
                 }
             }
             if attempt < MAX_RETRIES - 1 {

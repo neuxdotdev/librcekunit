@@ -3,7 +3,10 @@ pub mod client;
 pub mod handler;
 pub use crate::api::auth::loging::LoginClient;
 pub use crate::api::auth::utils::cache::{CacheData, CacheManager};
-pub use crate::api::dashboard::{DashboardClient, InputDataClient, InputUserClient, PicClient};
+pub use crate::api::dashboard::{
+    DashboardClient, InputDataClient, InputUserClient, PicClient, UsersClient,
+};
+
 pub use api::auth::logout::LogoutClient;
 pub use client::CekUnitClient;
 pub use handler::env::EnvConfig;

@@ -50,7 +50,7 @@ impl InputDataClient {
             .brotli(true)
             .deflate(true)
             .build()
-            .map_err(|e| ApiError::RequestFailed(Box::new(e)))
+            .map_err(|e| ApiError::from(e))
     }
     fn ensure_authenticated(&self) -> Result<CacheData, ApiError> {
         match self.cache_manager.load()? {
@@ -83,17 +83,16 @@ impl InputDataClient {
             .get(&url)
             .headers(headers)
             .send()
-            .map_err(|e| ApiError::RequestFailed(Box::new(e)))?;
+            .map_err(|e| ApiError::from(e))?;
         let status = response.status();
         if status.is_success() {
-            Ok(response
-                .text()
-                .map_err(|e| ApiError::RequestFailed(Box::new(e)))?)
+            Ok(response.text().map_err(|e| ApiError::from(e))?)
         } else {
             let body = response.text().unwrap_or_default();
-            Err(ApiError::RequestFailed(
-                format!("HTTP {} - {}", status, body).into(),
-            ))
+            Err(ApiError::RequestFailed(format!(
+                "HTTP {} - {}",
+                status, body
+            )))
         }
     }
     pub fn insert_nasabah(&self, data: HashMap<&str, &str>) -> Result<(), ApiError> {
@@ -115,15 +114,16 @@ impl InputDataClient {
             .headers(headers)
             .form(&form)
             .send()
-            .map_err(|e| ApiError::RequestFailed(Box::new(e)))?;
+            .map_err(|e| ApiError::from(e))?;
         let status = response.status();
         if status.is_success() || status.as_u16() == 302 {
             Ok(())
         } else {
             let body = response.text().unwrap_or_default();
-            Err(ApiError::RequestFailed(
-                format!("HTTP {} - {}", status, body).into(),
-            ))
+            Err(ApiError::RequestFailed(format!(
+                "HTTP {} - {}",
+                status, body
+            )))
         }
     }
     pub fn get_csrf_token(&self) -> Result<String, ApiError> {
