@@ -46,23 +46,23 @@ impl UsersClient {
             .pool_max_idle_per_host(10)
             .build()
             .map_err(|e| {
-                log::error!("❌ Failed to build HTTP client: {}", e);
+                log::error!(" Failed to build HTTP client: {}", e);
                 ApiError::RequestFailed(e.to_string())
             })
     }
     fn ensure_authenticated(&self) -> Result<CacheData, ApiError> {
         match self.cache_manager.load()? {
             Some(cache) if cache.logged_in => {
-                log::debug!("🔐 Valid session loaded ({} cookies)", cache.cookies.len());
+                log::debug!(" Valid session loaded ({} cookies)", cache.cookies.len());
                 Ok(cache)
             }
             Some(_) => {
-                log::warn!("⚠️ Session exists but not logged in – clearing cache");
+                log::warn!("️ Session exists but not logged in – clearing cache");
                 self.cache_manager.clear()?;
                 Err(ApiError::NotAuthenticated)
             }
             None => {
-                log::warn!("⚠️ No active session found");
+                log::warn!("️ No active session found");
                 Err(ApiError::NotAuthenticated)
             }
         }
@@ -82,7 +82,7 @@ impl UsersClient {
             .collect();
         if !cookie_map.is_empty() {
             crate::api::auth::utils::cookies::add_cookies_to_headers(&mut headers, &cookie_map)?;
-            log::debug!("🍪 Attached {} cookies", cookie_map.len());
+            log::debug!(" Attached {} cookies", cookie_map.len());
         }
         Ok(headers)
     }
@@ -109,7 +109,7 @@ impl UsersClient {
             url.push_str("?");
             url.push_str(&params.join("&"));
         }
-        log::debug!("📤 Requesting users list: {}", url);
+        log::debug!(" Requesting users list: {}", url);
         let response = self
             .client
             .get(&url)
@@ -121,12 +121,12 @@ impl UsersClient {
             let html = response
                 .text()
                 .map_err(|e| ApiError::RequestFailed(e.to_string()))?;
-            log::debug!("✅ Users list fetched, {} bytes", html.len());
+            log::debug!(" Users list fetched, {} bytes", html.len());
             Ok(html)
         } else {
             let body = response.text().unwrap_or_default();
             let err = ApiError::from_status(status, Some(&body));
-            log::error!("❌ Failed to fetch users list: {}", err);
+            log::error!(" Failed to fetch users list: {}", err);
             Err(err)
         }
     }
@@ -146,7 +146,7 @@ impl UsersClient {
         for (key, value) in data {
             form.insert(key, value);
         }
-        log::info!("📤 Updating user {} at {}", id, url);
+        log::info!(" Updating user {} at {}", id, url);
         let response = self
             .client
             .post(&url)
@@ -156,12 +156,12 @@ impl UsersClient {
             .map_err(|e| ApiError::from_reqwest_error(e, "PUT user"))?;
         let status = response.status();
         if status.is_success() || status.as_u16() == 302 {
-            log::info!("✅ User {} updated successfully", id);
+            log::info!(" User {} updated successfully", id);
             Ok(())
         } else {
             let body = response.text().unwrap_or_default();
             let err = ApiError::from_status(status, Some(&body));
-            log::error!("❌ Failed to update user {}: {}", id, err);
+            log::error!(" Failed to update user {}: {}", id, err);
             Err(err)
         }
     }

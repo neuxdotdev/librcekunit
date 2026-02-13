@@ -1,6 +1,6 @@
 [package]
 name = "librcekunit"
-version = "1.0.0"
+version = "1.0.1"
 edition = "2024"
 authors = ["neuxdotdev <neuxdev1@gmail.com>"]
 description = "a pure library implementation into rust programming language for admin panel cekunit"
